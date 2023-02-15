@@ -2,49 +2,46 @@ package pl.javastart.task;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
 
 public class Main {
+    private static final int EXIT = 0;
+    private static final int ADD = 1;
+    private static final int SERVICE = 2;
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         String serviceFile = "service.csv";
-        File file = new File(serviceFile);
-        Queue<Vehicle> vehicles = new LinkedList<>();
-        try {
-            vehicles = checkFileExist(serviceFile, file, vehicles);
-        } catch (FileNotFoundException e) {
-            System.out.println("Plik nie został utworzony");
-        }
-        boolean onOff = true;
-        while (onOff) {
+        Queue<Vehicle> vehicles = readQueue(serviceFile);
+        boolean exit = false;
+        while (!exit) {
             System.out.println("""
                     Wybierz co chcesz zrobić:
-                    0 - zakończyć
-                    1 - wczytać nowy pojazd do kolejki
+                    0 - exit
+                    1 - dodać nowy pojazd do kolejki
                     2 - obsłużyć pierwszy pojazd w kolejce""");
             int userChoose = scanner.nextInt();
             switch (userChoose) {
-                case 0:
-                    if (!vehicles.isEmpty()) {
-                        try {
+                case EXIT:
+                    try {
+                        if (!vehicles.isEmpty()) {
                             Service.saveQueue(vehicles);
-                        } catch (IOException e) {
-                            System.out.println("Plik nie został utworzony");
+                        } else {
+                            new FileWriter("service.csv", false).close();
                         }
-                        onOff = false;
-                        break;
-                    } else {
-                        onOff = false;
-                        break;
+                    } catch (IOException e) {
+                        System.out.println("Nie udało się zapisać danych w pliku");
                     }
-                case 1:
-                    vehicles.offer(Service.addNewVehicle(scanner));
+                    exit = true;
                     break;
-                case 2:
+                case ADD:
+                    vehicles.offer(Service.createNewVehicle(scanner));
+                    break;
+                case SERVICE:
                     Service.serveFirst(vehicles);
                     break;
                 default:
@@ -53,11 +50,12 @@ public class Main {
         }
     }
 
-    private static Queue<Vehicle> checkFileExist(String serviceFile, File file, Queue<Vehicle> vehicles) throws FileNotFoundException {
-        if (file.exists()) {
-            vehicles = Service.readDataVehicles(serviceFile);
+    private static Queue<Vehicle> readQueue(String serviceFile) {
+        try {
+            return Service.readDataVehicles(serviceFile);
+        } catch (FileNotFoundException e) {
+            return new LinkedList<>();
         }
-        return vehicles;
     }
 }
 

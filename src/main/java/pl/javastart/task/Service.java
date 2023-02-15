@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 public class Service {
 
-    public static Vehicle addNewVehicle(Scanner scanner) {
+    public static Vehicle createNewVehicle(Scanner scanner) {
         System.out.println("Podaj typ pojazdu: ");
         String vehicleType = scanner.next();
         System.out.println("Podaj marke: ");
@@ -27,8 +27,12 @@ public class Service {
     }
 
     public static void serveFirst(Queue<Vehicle> vehicles) {
-        System.out.println("Pojazd o numerze VIN: " + vehicles.peek() + " obecnie przechodzi przegląd");
-        System.out.println("Pojazd o numerze VIN: " + vehicles.poll() + " zakończył przegląd pomyślnie");
+        if (!vehicles.isEmpty()) {
+            System.out.println("Pojazd o numerze VIN: " + vehicles.peek() + " obecnie przechodzi przegląd");
+            System.out.println("Pojazd o numerze VIN: " + vehicles.poll() + " zakończył przegląd pomyślnie");
+        } else {
+            System.out.println("Kolejka jest pusta, żaden pojazd nie czeka na serwis.");
+        }
     }
 
     public static void saveQueue(Queue<Vehicle> vehicles) throws IOException {
@@ -43,9 +47,8 @@ public class Service {
 
     public static Queue<Vehicle> readDataVehicles(String fileName) throws FileNotFoundException {
         Scanner scanner = new Scanner(new File(fileName));
-        int lines = countLines(fileName);
         Queue<Vehicle> vehicles = new LinkedList<>();
-        for (int i = 0; i < lines; i++) {
+        while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             String[] split = line.split(";");
             int year = Integer.parseInt(split[3]);
@@ -53,15 +56,5 @@ public class Service {
             vehicles.offer(new Vehicle(split[0], split[1], split[2], year, millage, split[5]));
         }
         return vehicles;
-    }
-
-    private static int countLines(String fileName) throws FileNotFoundException {
-        Scanner scanner = new Scanner(new File(fileName));
-        int lines = 0;
-        while (scanner.hasNextLine()) {
-            lines++;
-            scanner.nextLine();
-        }
-        return lines;
     }
 }
